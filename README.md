@@ -54,9 +54,9 @@ Direct tab selection (right-hand home row layout):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `vtab-side` | `'left` | Display side (left/right) |
+| `vtab-side` | `'left` | Display side (`left` / `right`) |
 | `vtab-window-width` | `25` | Side window width |
-| `vtab-new-tab-position` | `'rightmost` | Where new tabs appear |
+| `vtab-new-tab-position` | `'rightmost` | `rightmost` / `leftmost` / `right` / `left` |
 | `vtab-new-tab-choice` | `"*scratch*"` | Initial buffer for new tabs |
 
 All keybindings are customizable:
