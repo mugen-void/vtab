@@ -2,9 +2,6 @@
 
 A minor-mode package that extends Emacs `tab-bar-mode` to display a vertical tab bar in a side window.
 
-**Requires:** Emacs 27.1+
-**License:** GPL-3.0-or-later
-
 <!-- Screenshot placeholder -->
 <!-- ![vtab screenshot](./screenshot.png) -->
 
@@ -99,5 +96,7 @@ emacs -batch -f batch-byte-compile vtab.el
 </details>
 
 ---
+
+**Requires:** Emacs 27.1+ | **License:** GPL-3.0-or-later
 
 Built with [Claude Code](https://claude.ai/code)
