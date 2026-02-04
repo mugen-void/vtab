@@ -5,6 +5,12 @@ A minor-mode package that extends Emacs `tab-bar-mode` to display a vertical tab
 <!-- Screenshot placeholder -->
 <!-- ![vtab screenshot](./screenshot.png) -->
 
+
+## screenshot
+<img width="916" height="357" alt="スクリーンショット 2026-02-04 23 48 38" src="https://github.com/user-attachments/assets/42acf2d2-9a2d-4c47-8651-b1bf553cfe5b" />
+
+
+
 ## Features
 
 - Vertical tab bar in a dedicated side window (left or right)
