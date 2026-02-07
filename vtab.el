@@ -182,7 +182,8 @@ Save original bindings to `vtab--saved-keybindings' for later restoration."
       (let* ((key-str (car binding))
              (command (cdr binding))
              (key (kbd key-str))
-             (original (lookup-key global-map key)))
+             (orig (lookup-key global-map key))
+             (original (unless (numberp orig) orig)))
         (push (cons key-str original) vtab--saved-keybindings)
         (global-set-key key command))))
   ;; Direct tab selection keybindings
@@ -190,7 +191,8 @@ Save original bindings to `vtab--saved-keybindings' for later restoration."
     (let* ((key-str (car entry))
            (tab-num (cdr entry))
            (key (kbd key-str))
-           (original (lookup-key global-map key)))
+           (orig (lookup-key global-map key))
+           (original (unless (numberp orig) orig)))
       (push (cons key-str original) vtab--saved-keybindings)
       (let ((n tab-num))
         (global-set-key key
