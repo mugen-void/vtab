@@ -73,29 +73,45 @@
   :type 'string
   :group 'vtab)
 
+(defvar vtab-mode)
+
+(defun vtab--set-key (sym val)
+  "Custom setter for key variables.
+Update the variable and rebind keys if `vtab-mode' is active."
+  (when (bound-and-true-p vtab-mode)
+    (vtab--restore-keybindings))
+  (set-default sym val)
+  (when (bound-and-true-p vtab-mode)
+    (vtab--setup-keybindings)))
+
 (defcustom vtab-key-new-tab "M-s M-c"
   "Key sequence for creating a new tab."
   :type 'string
+  :set #'vtab--set-key
   :group 'vtab)
 
 (defcustom vtab-key-close-tab "M-s M-k"
   "Key sequence for closing the current tab."
   :type 'string
+  :set #'vtab--set-key
   :group 'vtab)
 
 (defcustom vtab-key-next-tab "M-s M-n"
   "Key sequence for switching to the next tab."
   :type 'string
+  :set #'vtab--set-key
   :group 'vtab)
 
 (defcustom vtab-key-prev-tab "M-s M-p"
   "Key sequence for switching to the previous tab."
   :type 'string
+  :set #'vtab--set-key
   :group 'vtab)
 
 (defcustom vtab-key-goto-tab "M-s M-s"
   "Key sequence for going to a tab by number."
   :type 'string
+  :set #'vtab--set-key
   :group 'vtab)
 
 (defcustom vtab-goto-keys
@@ -107,6 +123,7 @@
 Each element is (KEY-SEQUENCE . TAB-NUMBER).
 KEY-SEQUENCE is a string like \"M-s 7\" or \"C-x t 1\"."
   :type '(alist :key-type string :value-type integer)
+  :set #'vtab--set-key
   :group 'vtab)
 
 ;;;; Keymaps
