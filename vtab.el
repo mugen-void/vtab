@@ -42,6 +42,9 @@
 
 ;;; Code:
 
+(require 'tab-bar)
+(require 'seq)
+
 ;;;; Customization
 
 (defgroup vtab nil
