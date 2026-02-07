@@ -187,6 +187,12 @@ Save original bindings to `vtab--saved-keybindings' for later restoration."
         (global-unset-key key))))
   (setq vtab--saved-keybindings nil))
 
+(defun vtab--current-tab-index ()
+  "Return the index of the current tab."
+  (seq-position (tab-bar-tabs)
+                'current-tab
+                (lambda (tab _) (eq (car tab) 'current-tab))))
+
 (defun vtab--get-tabs ()
   "Return list of tab names."
   (mapcar (lambda (tab)
@@ -196,7 +202,7 @@ Save original bindings to `vtab--saved-keybindings' for later restoration."
 (defun vtab--refresh ()
   "Refresh the vertical tab bar buffer."
   (let* ((tabs (vtab--get-tabs))
-         (current (tab-bar--current-tab-index))
+         (current (vtab--current-tab-index))
          (new-state (cons current tabs)))
     (unless (equal new-state vtab--last-tab-state)
       (setq vtab--last-tab-state new-state)
