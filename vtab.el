@@ -172,8 +172,9 @@ Save original bindings to `vtab--saved-keybindings' for later restoration."
            (key (kbd key-str))
            (original (lookup-key global-map key)))
       (push (cons key-str original) vtab--saved-keybindings)
-      (global-set-key key
-                      `(lambda () (interactive) (tab-bar-select-tab ,tab-num))))))
+      (let ((n tab-num))
+        (global-set-key key
+                        (lambda () (interactive) (tab-bar-select-tab n)))))))
 
 (defun vtab--restore-keybindings ()
   "Restore original keybindings from `vtab--saved-keybindings'."
