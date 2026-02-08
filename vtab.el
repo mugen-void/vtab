@@ -231,7 +231,8 @@ Save original bindings to `vtab--saved-keybindings' for later restoration."
   (let* ((tabs (vtab--get-tabs))
          (current (vtab--current-tab-index))
          (new-state (cons current tabs)))
-    (unless (equal new-state (frame-parameter nil 'vtab--tab-state))
+    (when (and current
+               (not (equal new-state (frame-parameter nil 'vtab--tab-state))))
       (set-frame-parameter nil 'vtab--tab-state new-state)
       (let ((buf (vtab--get-buffer)))
         (with-current-buffer buf
