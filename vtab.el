@@ -369,6 +369,9 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
   (remove-hook 'window-buffer-change-functions #'vtab--on-buffer-change)
   (remove-hook 'org-agenda-finalize-hook #'vtab--on-org-agenda-finalize)
   (remove-hook 'window-size-change-functions #'vtab--on-window-size-change)
+  ;; Remove from window-persistent-parameters
+  (setq window-persistent-parameters
+        (delete '(no-delete-other-windows . t) window-persistent-parameters))
   ;; Restore keybindings
   (vtab--restore-keybindings)
   ;; Restore original settings
