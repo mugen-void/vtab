@@ -327,6 +327,14 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
     (with-selected-frame frame
       (vtab--ensure-visible))))
 
+(defun vtab--on-frame-delete (frame)
+  "Clean up vtab resources for FRAME."
+  (when-let ((buf (frame-parameter frame 'vtab--buffer)))
+    (when (buffer-live-p buf)
+      (kill-buffer buf)))
+  (set-frame-parameter frame 'vtab--buffer nil)
+  (set-frame-parameter frame 'vtab--tab-state nil))
+
 ;;;; Enable / Disable
 
 (defun vtab--enable ()
@@ -346,6 +354,8 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
   (modify-all-frames-parameters '((tab-bar-lines . 0)))
   ;; Hook to setup vtab on new frames (daemon/emacsclient support)
   (add-hook 'after-make-frame-functions #'vtab--setup-new-frame)
+  ;; Hook to clean up vtab on frame deletion
+  (add-hook 'delete-frame-functions #'vtab--on-frame-delete)
   ;; Apply defcustom values
   (setq tab-bar-new-tab-to vtab-new-tab-position)
   (setq tab-bar-new-tab-choice vtab-new-tab-choice)
@@ -371,8 +381,9 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
         (kill-buffer buf)))
     (set-frame-parameter frame 'vtab--buffer nil)
     (set-frame-parameter frame 'vtab--tab-state nil))
-  ;; Remove frame hook
+  ;; Remove frame hooks
   (remove-hook 'after-make-frame-functions #'vtab--setup-new-frame)
+  (remove-hook 'delete-frame-functions #'vtab--on-frame-delete)
   ;; Remove hooks
   (remove-hook 'tab-bar-tab-post-select-functions #'vtab--on-tab-select)
   (remove-hook 'tab-bar-tab-post-open-functions #'vtab--on-tab-open)
