@@ -155,9 +155,6 @@ Each frame gets its own dedicated buffer stored as a frame parameter."
   "Alist of original keybindings saved before enabling `vtab-mode'.
 Each element is (KEY-SEQUENCE . ORIGINAL-BINDING).")
 
-(defvar vtab--last-tab-state nil
-  "Cache of (CURRENT-INDEX . TAB-NAMES) for dirty checking.")
-
 (defvar vtab--resizing nil
   "Non-nil while vtab is resizing window to prevent infinite loop.")
 
@@ -234,8 +231,8 @@ Save original bindings to `vtab--saved-keybindings' for later restoration."
   (let* ((tabs (vtab--get-tabs))
          (current (vtab--current-tab-index))
          (new-state (cons current tabs)))
-    (unless (equal new-state vtab--last-tab-state)
-      (setq vtab--last-tab-state new-state)
+    (unless (equal new-state (frame-parameter nil 'vtab--tab-state))
+      (set-frame-parameter nil 'vtab--tab-state new-state)
       (let ((buf (vtab--get-buffer)))
         (with-current-buffer buf
           (let ((inhibit-read-only t))
@@ -365,7 +362,7 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
 (defun vtab--disable ()
   "Internal function to disable `vtab-mode'."
   ;; Clear dirty-check cache
-  (setq vtab--last-tab-state nil)
+  (set-frame-parameter nil 'vtab--tab-state nil)
   ;; Delete side window
   (when-let ((win (get-buffer-window vtab--buffer-name)))
     (delete-window win))
