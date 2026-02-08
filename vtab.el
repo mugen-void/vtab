@@ -80,9 +80,7 @@
 
 (defun vtab--set-key (sym val)
   "Custom setter for key variables.
-Update the variable and rebind keys if `vtab-mode' is active."
-  (when (bound-and-true-p vtab-mode)
-    (vtab--restore-keybindings))
+Update the variable and rebuild `vtab-mode-map' if `vtab-mode' is active."
   (set-default sym val)
   (when (bound-and-true-p vtab-mode)
     (vtab--setup-keybindings)))
@@ -131,11 +129,10 @@ KEY-SEQUENCE is a string like \"M-s 7\" or \"C-x t 1\"."
 
 ;;;; Keymaps
 
-;;;; Variables
+(defvar vtab-mode-map (make-sparse-keymap)
+  "Keymap for `vtab-mode'.")
 
-(defvar vtab-mode nil
-  "Non-nil if `vtab-mode' is enabled.
-Set by `define-minor-mode'.")
+;;;; Variables
 
 (defun vtab--get-buffer (&optional frame)
   "Get or create the vtab buffer for FRAME.
@@ -150,10 +147,6 @@ Each frame gets its own dedicated buffer stored as a frame parameter."
 
 (defvar vtab--saved-settings nil
   "Alist of settings saved before enabling `vtab-mode'.")
-
-(defvar vtab--saved-keybindings nil
-  "Alist of original keybindings saved before enabling `vtab-mode'.
-Each element is (KEY-SEQUENCE . ORIGINAL-BINDING).")
 
 (defvar vtab--resizing nil
   "Non-nil while vtab is resizing window to prevent infinite loop.")
@@ -174,45 +167,23 @@ Each element is (KEY-SEQUENCE . ORIGINAL-BINDING).")
 ;;;; Internal Functions
 
 (defun vtab--setup-keybindings ()
-  "Setup keybindings from defcustom variables.
-Save original bindings to `vtab--saved-keybindings' for later restoration."
-  (setq vtab--saved-keybindings nil)
-  ;; Command keybindings
+  "Populate `vtab-mode-map' from defcustom variables."
+  (setcdr vtab-mode-map nil)
   (let ((bindings `((,vtab-key-new-tab . tab-new)
                     (,vtab-key-close-tab . tab-close)
                     (,vtab-key-next-tab . tab-next)
                     (,vtab-key-prev-tab . tab-previous)
                     (,vtab-key-goto-tab . vtab-goto-tab))))
     (dolist (binding bindings)
-      (let* ((key-str (car binding))
-             (command (cdr binding))
-             (key (kbd key-str))
-             (orig (lookup-key global-map key))
-             (original (unless (numberp orig) orig)))
-        (push (cons key-str original) vtab--saved-keybindings)
-        (global-set-key key command))))
-  ;; Direct tab selection keybindings
+      (define-key vtab-mode-map (kbd (car binding)) (cdr binding))))
   (dolist (entry vtab-goto-keys)
-    (let* ((key-str (car entry))
-           (tab-num (cdr entry))
-           (key (kbd key-str))
-           (orig (lookup-key global-map key))
-           (original (unless (numberp orig) orig)))
-      (push (cons key-str original) vtab--saved-keybindings)
-      (let ((n tab-num))
-        (global-set-key key
-                        (lambda () (interactive) (tab-bar-select-tab n)))))))
+    (let ((n (cdr entry)))
+      (define-key vtab-mode-map (kbd (car entry))
+                  (lambda () (interactive) (tab-bar-select-tab n))))))
 
 (defun vtab--restore-keybindings ()
-  "Restore original keybindings from `vtab--saved-keybindings'."
-  (dolist (entry vtab--saved-keybindings)
-    (let* ((key-str (car entry))
-           (original (cdr entry))
-           (key (kbd key-str)))
-      (if original
-          (global-set-key key original)
-        (global-unset-key key))))
-  (setq vtab--saved-keybindings nil))
+  "Clear all bindings from `vtab-mode-map'."
+  (setcdr vtab-mode-map nil))
 
 (defun vtab--current-tab-index ()
   "Return the index of the current tab."
@@ -409,10 +380,11 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
 ;;;###autoload
 (define-minor-mode vtab-mode
   "Toggle vertical tab bar display.
-   When enabled, displays a vertical tab bar in a side window."
+When enabled, displays a vertical tab bar in a side window."
   :global t
   :group 'vtab
   :lighter " VTab"
+  :keymap vtab-mode-map
   (if vtab-mode
       (vtab--enable)
     (vtab--disable)))
