@@ -39,6 +39,7 @@
 ;;   M-s [key]  Direct tab selection (right-hand layout):
 ;;     7890 -> tab 1-4,  uiop -> tab 5-8
 ;;     jkl; -> tab 9-12, m,./ -> tab 13-16
+;;   Customize via (define-key vtab-mode-map ...)
 
 ;;; Code:
 
@@ -76,60 +77,26 @@
   :type 'string
   :group 'vtab)
 
-(defvar vtab-mode)
-
-(defun vtab--set-key (sym val)
-  "Custom setter for key variables.
-Update the variable and rebuild `vtab-mode-map' if `vtab-mode' is active."
-  (set-default sym val)
-  (when (bound-and-true-p vtab-mode)
-    (vtab--setup-keybindings)))
-
-(defcustom vtab-key-new-tab "M-s M-c"
-  "Key sequence for creating a new tab."
-  :type 'string
-  :set #'vtab--set-key
-  :group 'vtab)
-
-(defcustom vtab-key-close-tab "M-s M-k"
-  "Key sequence for closing the current tab."
-  :type 'string
-  :set #'vtab--set-key
-  :group 'vtab)
-
-(defcustom vtab-key-next-tab "M-s M-n"
-  "Key sequence for switching to the next tab."
-  :type 'string
-  :set #'vtab--set-key
-  :group 'vtab)
-
-(defcustom vtab-key-prev-tab "M-s M-p"
-  "Key sequence for switching to the previous tab."
-  :type 'string
-  :set #'vtab--set-key
-  :group 'vtab)
-
-(defcustom vtab-key-goto-tab "M-s M-s"
-  "Key sequence for going to a tab by number."
-  :type 'string
-  :set #'vtab--set-key
-  :group 'vtab)
-
-(defcustom vtab-goto-keys
-  '(("M-s 7" . 1) ("M-s 8" . 2) ("M-s 9" . 3) ("M-s 0" . 4)
-    ("M-s u" . 5) ("M-s i" . 6) ("M-s o" . 7) ("M-s p" . 8)
-    ("M-s j" . 9) ("M-s k" . 10) ("M-s l" . 11) ("M-s ;" . 12)
-    ("M-s m" . 13) ("M-s ," . 14) ("M-s ." . 15) ("M-s /" . 16))
-  "Alist mapping full key sequences to tab numbers.
-Each element is (KEY-SEQUENCE . TAB-NUMBER).
-KEY-SEQUENCE is a string like \"M-s 7\" or \"C-x t 1\"."
-  :type '(alist :key-type string :value-type integer)
-  :set #'vtab--set-key
-  :group 'vtab)
+(defvar vtab-mode) ; Forward declaration for byte-compiler; defined by `define-minor-mode'.
 
 ;;;; Keymaps
 
-(defvar vtab-mode-map (make-sparse-keymap)
+(defvar vtab-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "M-s M-c") #'tab-new)
+    (define-key map (kbd "M-s M-k") #'tab-close)
+    (define-key map (kbd "M-s M-n") #'tab-next)
+    (define-key map (kbd "M-s M-p") #'tab-previous)
+    (define-key map (kbd "M-s M-s") #'vtab-goto-tab)
+    ;; Direct tab selection (right-hand layout)
+    (dotimes (i 16)
+      (let* ((n (1+ i))
+             (keys ["7" "8" "9" "0" "u" "i" "o" "p"
+                    "j" "k" "l" ";" "m" "," "." "/"])
+             (key (aref keys i)))
+        (define-key map (kbd (format "M-s %s" key))
+                    (lambda () (interactive) (tab-bar-select-tab n)))))
+    map)
   "Keymap for `vtab-mode'.")
 
 ;;;; Variables
@@ -165,25 +132,6 @@ Each frame gets its own dedicated buffer stored as a frame parameter."
   "Face for the active tab.")
 
 ;;;; Internal Functions
-
-(defun vtab--setup-keybindings ()
-  "Populate `vtab-mode-map' from defcustom variables."
-  (setcdr vtab-mode-map nil)
-  (let ((bindings `((,vtab-key-new-tab . tab-new)
-                    (,vtab-key-close-tab . tab-close)
-                    (,vtab-key-next-tab . tab-next)
-                    (,vtab-key-prev-tab . tab-previous)
-                    (,vtab-key-goto-tab . vtab-goto-tab))))
-    (dolist (binding bindings)
-      (define-key vtab-mode-map (kbd (car binding)) (cdr binding))))
-  (dolist (entry vtab-goto-keys)
-    (let ((n (cdr entry)))
-      (define-key vtab-mode-map (kbd (car entry))
-                  (lambda () (interactive) (tab-bar-select-tab n))))))
-
-(defun vtab--restore-keybindings ()
-  "Clear all bindings from `vtab-mode-map'."
-  (setcdr vtab-mode-map nil))
 
 (defun vtab--current-tab-index ()
   "Return the index of the current tab."
@@ -317,8 +265,6 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
               (cons 'tab-bar-new-tab-to tab-bar-new-tab-to)
               (cons 'tab-bar-new-tab-choice tab-bar-new-tab-choice)
               (cons 'tab-bar-lines (frame-parameter nil 'tab-bar-lines))))
-  ;; Setup keybindings
-  (vtab--setup-keybindings)
   ;; Enable tab-bar-mode but hide top tab bar
   (tab-bar-mode 1)
   (setq tab-bar-show nil)
@@ -365,8 +311,6 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
   ;; Remove from window-persistent-parameters
   (setq window-persistent-parameters
         (delete '(no-delete-other-windows . t) window-persistent-parameters))
-  ;; Restore keybindings
-  (vtab--restore-keybindings)
   ;; Restore original settings
   (when vtab--saved-settings
     (setq tab-bar-show (alist-get 'tab-bar-show vtab--saved-settings))

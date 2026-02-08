@@ -16,7 +16,7 @@ A minor-mode package that extends Emacs `tab-bar-mode` to display a vertical tab
 - Vertical tab bar in a dedicated side window (left or right)
 - Click or keyboard to switch tabs
 - Direct tab selection with customizable key sequences
-- `M-x customize` support for all settings
+- `M-x customize` support for display settings
 - Clean enable/disable: restores original settings when disabled
 - Protected side window (`C-x o` skips it, `C-x 1` preserves it)
 
@@ -65,21 +65,15 @@ Direct tab selection (right-hand home row layout):
 | `vtab-new-tab-position` | `'rightmost` | `rightmost` / `leftmost` / `right` / `left` |
 | `vtab-new-tab-choice` | `"*scratch*"` | Initial buffer for new tabs |
 
-All keybindings are customizable:
+Keybindings can be customized via `define-key`:
 
 ```elisp
 ;; Use C-x t prefix instead of M-s
-(setq vtab-key-new-tab "C-x t c")
-(setq vtab-key-close-tab "C-x t k")
-(setq vtab-key-next-tab "C-x t n")
-(setq vtab-key-prev-tab "C-x t p")
-(setq vtab-key-goto-tab "C-x t g")
-
-;; Simpler direct selection with M-1 to M-0
-(setq vtab-goto-keys
-      '(("M-1" . 1) ("M-2" . 2) ("M-3" . 3) ("M-4" . 4)
-        ("M-5" . 5) ("M-6" . 6) ("M-7" . 7) ("M-8" . 8)
-        ("M-9" . 9) ("M-0" . 10)))
+(define-key vtab-mode-map (kbd "C-x t c") #'tab-new)
+(define-key vtab-mode-map (kbd "C-x t k") #'tab-close)
+(define-key vtab-mode-map (kbd "C-x t n") #'tab-next)
+(define-key vtab-mode-map (kbd "C-x t p") #'tab-previous)
+(define-key vtab-mode-map (kbd "C-x t g") #'vtab-goto-tab)
 ```
 
 <details>
