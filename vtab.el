@@ -308,15 +308,16 @@ Save original bindings to `vtab--saved-keybindings' for later restoration."
   "Hook function called after `org-agenda' display."
   (vtab--ensure-visible))
 
-(defun vtab--on-window-size-change (&optional _frame)
+(defun vtab--on-window-size-change (&optional frame)
   "Hook function called after window size change.
 Adjust the side window width to match `vtab-window-width'."
   (when (and vtab-mode (not vtab--resizing))
-    (when-let ((win (get-buffer-window vtab--buffer-name)))
-      (let ((current-width (window-width win)))
-        (unless (= current-width vtab-window-width)
-          (let ((vtab--resizing t))
-            (window-resize win (- vtab-window-width current-width) t)))))))
+    (let ((f (or frame (selected-frame))))
+      (when-let ((win (get-buffer-window (vtab--get-buffer f) f)))
+        (let ((current-width (window-width win)))
+          (unless (= current-width vtab-window-width)
+            (let ((vtab--resizing t))
+              (window-resize win (- vtab-window-width current-width) t))))))))
 
 (defun vtab--setup-new-frame (frame)
   "Setup vtab on new FRAME.
@@ -361,11 +362,15 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
 
 (defun vtab--disable ()
   "Internal function to disable `vtab-mode'."
-  ;; Clear dirty-check cache
-  (set-frame-parameter nil 'vtab--tab-state nil)
-  ;; Delete side window
-  (when-let ((win (get-buffer-window vtab--buffer-name)))
-    (delete-window win))
+  ;; Clean up all frames: windows, buffers, and frame parameters
+  (dolist (frame (frame-list))
+    (when-let ((buf (frame-parameter frame 'vtab--buffer)))
+      (when-let ((win (get-buffer-window buf frame)))
+        (delete-window win))
+      (when (buffer-live-p buf)
+        (kill-buffer buf)))
+    (set-frame-parameter frame 'vtab--buffer nil)
+    (set-frame-parameter frame 'vtab--tab-state nil))
   ;; Remove frame hook
   (remove-hook 'after-make-frame-functions #'vtab--setup-new-frame)
   ;; Remove hooks
