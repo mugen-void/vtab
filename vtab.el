@@ -285,7 +285,7 @@ Each frame gets its own dedicated buffer stored as a frame parameter."
 Adjust the side window width to match `vtab-window-width'."
   (when (and vtab-mode (not vtab--resizing))
     (let ((f (or frame (selected-frame))))
-      (when-let ((win (get-buffer-window (vtab--get-buffer f) f)))
+      (when-let* ((win (get-buffer-window (vtab--get-buffer f) f)))
         (let ((current-width (window-width win)))
           (unless (= current-width vtab-window-width)
             (let ((vtab--resizing t))
@@ -301,7 +301,7 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
 
 (defun vtab--on-frame-delete (frame)
   "Clean up vtab resources for FRAME."
-  (when-let ((buf (frame-parameter frame 'vtab--buffer)))
+  (when-let* ((buf (frame-parameter frame 'vtab--buffer)))
     (when (buffer-live-p buf)
       (kill-buffer buf)))
   (set-frame-parameter frame 'vtab--buffer nil)
@@ -346,8 +346,8 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
   "Internal function to disable `vtab-mode'."
   ;; Clean up all frames: windows, buffers, and frame parameters
   (dolist (frame (frame-list))
-    (when-let ((buf (frame-parameter frame 'vtab--buffer)))
-      (when-let ((win (get-buffer-window buf frame)))
+    (when-let* ((buf (frame-parameter frame 'vtab--buffer)))
+      (when-let* ((win (get-buffer-window buf frame)))
         (delete-window win))
       (when (buffer-live-p buf)
         (kill-buffer buf)))
