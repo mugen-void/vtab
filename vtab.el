@@ -137,8 +137,16 @@ KEY-SEQUENCE is a string like \"M-s 7\" or \"C-x t 1\"."
   "Non-nil if `vtab-mode' is enabled.
 Set by `define-minor-mode'.")
 
-(defvar vtab--buffer-name "*vtab*"
-  "Name of the vertical tab bar buffer.")
+(defun vtab--get-buffer (&optional frame)
+  "Get or create the vtab buffer for FRAME.
+Each frame gets its own dedicated buffer stored as a frame parameter."
+  (let* ((f (or frame (selected-frame)))
+         (buf (frame-parameter f 'vtab--buffer)))
+    (if (buffer-live-p buf)
+        buf
+      (let ((new-buf (generate-new-buffer " *vtab*")))
+        (set-frame-parameter f 'vtab--buffer new-buf)
+        new-buf))))
 
 (defvar vtab--saved-settings nil
   "Alist of settings saved before enabling `vtab-mode'.")
@@ -228,7 +236,7 @@ Save original bindings to `vtab--saved-keybindings' for later restoration."
          (new-state (cons current tabs)))
     (unless (equal new-state vtab--last-tab-state)
       (setq vtab--last-tab-state new-state)
-      (let ((buf (get-buffer-create vtab--buffer-name)))
+      (let ((buf (vtab--get-buffer)))
         (with-current-buffer buf
           (let ((inhibit-read-only t))
             (erase-buffer)
@@ -264,10 +272,10 @@ Save original bindings to `vtab--saved-keybindings' for later restoration."
 (defun vtab--ensure-visible ()
   "Ensure the vertical tab bar is visible when `vtab-mode' is enabled."
   (when vtab-mode
-    (let ((win (get-buffer-window vtab--buffer-name)))
+    (let ((win (get-buffer-window (vtab--get-buffer))))
       (unless win
         (setq win (display-buffer-in-side-window
-                   (get-buffer-create vtab--buffer-name)
+                   (vtab--get-buffer)
                    `((side . ,vtab-side)
                      (window-width . ,vtab-window-width)))))
       ;; Exclude from other-window (C-x o)
