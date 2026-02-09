@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.1.0
+
+- Add defcustom for window-divider and fringe styling control
+
 ## v1.0.0
 
 - Initial release

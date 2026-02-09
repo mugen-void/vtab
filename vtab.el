@@ -2,7 +2,7 @@
 
 ;; Author: mugen <mugen.void42@gmail.com>
 ;; URL: https://github.com/mugen-void/vtab
-;; Version: 0.1.0
+;; Version: 1.1.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: convenience, frames
 ;; SPDX-License-Identifier: GPL-3.0-or-later
