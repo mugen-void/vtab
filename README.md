@@ -64,6 +64,8 @@ Direct tab selection (right-hand home row layout):
 | `vtab-window-width` | `25` | Side window width |
 | `vtab-new-tab-position` | `'rightmost` | `rightmost` / `leftmost` / `right` / `left` |
 | `vtab-new-tab-choice` | `"*scratch*"` | Initial buffer for new tabs |
+| `vtab-style-window-divider` | `t` | Set window-divider to 1px thin line |
+| `vtab-style-fringe` | `t` | Make fringe background transparent |
 
 Keybindings can be customized via `define-key`:
 

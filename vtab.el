@@ -77,6 +77,16 @@
   :type 'string
   :group 'vtab)
 
+(defcustom vtab-style-window-divider t
+  "Non-nil means vtab sets window-divider to 1px thin line when enabled."
+  :type 'boolean
+  :group 'vtab)
+
+(defcustom vtab-style-fringe t
+  "Non-nil means vtab makes fringe background transparent when enabled."
+  :type 'boolean
+  :group 'vtab)
+
 (defvar vtab-mode) ; Forward declaration for byte-compiler; defined by `define-minor-mode'.
 
 ;;;; Keymaps
@@ -198,7 +208,9 @@ Each frame gets its own dedicated buffer stored as a frame parameter."
       ;; Exclude from other-window (C-x o)
       (set-window-parameter win 'no-other-window t)
       ;; Protect from delete-other-windows
-      (set-window-parameter win 'no-delete-other-windows t))
+      (set-window-parameter win 'no-delete-other-windows t)
+      ;; Remove fringes for clean border
+      (set-window-fringes win 0 0))
     (vtab--refresh)))
 
 ;;;; Commands
@@ -265,6 +277,16 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
               (cons 'tab-bar-new-tab-to tab-bar-new-tab-to)
               (cons 'tab-bar-new-tab-choice tab-bar-new-tab-choice)
               (cons 'tab-bar-lines (frame-parameter nil 'tab-bar-lines))))
+  (when vtab-style-window-divider
+    (push (cons 'window-divider-mode (bound-and-true-p window-divider-mode))
+          vtab--saved-settings)
+    (push (cons 'window-divider-default-right-width window-divider-default-right-width)
+          vtab--saved-settings)
+    (push (cons 'window-divider-default-places window-divider-default-places)
+          vtab--saved-settings))
+  (when vtab-style-fringe
+    (push (cons 'fringe-background (face-background 'fringe nil t))
+          vtab--saved-settings))
   ;; Enable tab-bar-mode but hide top tab bar
   (tab-bar-mode 1)
   (setq tab-bar-show nil)
@@ -285,6 +307,14 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
   (add-hook 'window-size-change-functions #'vtab--on-window-size-change)
   ;; Add to window-persistent-parameters
   (add-to-list 'window-persistent-parameters '(no-delete-other-windows . t))
+  ;; Thin window divider
+  (when vtab-style-window-divider
+    (setq window-divider-default-right-width 1)
+    (setq window-divider-default-places 'right-only)
+    (window-divider-mode 1))
+  ;; Make fringe background transparent for clean border
+  (when vtab-style-fringe
+    (set-face-background 'fringe nil))
   ;; Show side window
   (vtab--ensure-visible))
 
@@ -317,7 +347,17 @@ Hide top tab bar and show side window if `vtab-mode' is enabled."
     (setq tab-bar-new-tab-to (alist-get 'tab-bar-new-tab-to vtab--saved-settings))
     (setq tab-bar-new-tab-choice (alist-get 'tab-bar-new-tab-choice vtab--saved-settings))
     (modify-all-frames-parameters
-     `((tab-bar-lines . ,(alist-get 'tab-bar-lines vtab--saved-settings))))))
+     `((tab-bar-lines . ,(alist-get 'tab-bar-lines vtab--saved-settings))))
+    ;; Restore window divider settings (only if saved)
+    (when (assq 'window-divider-mode vtab--saved-settings)
+      (setq window-divider-default-right-width
+            (alist-get 'window-divider-default-right-width vtab--saved-settings))
+      (setq window-divider-default-places
+            (alist-get 'window-divider-default-places vtab--saved-settings))
+      (window-divider-mode (if (alist-get 'window-divider-mode vtab--saved-settings) 1 -1)))
+    ;; Restore fringe background (only if saved)
+    (when (assq 'fringe-background vtab--saved-settings)
+      (set-face-background 'fringe (alist-get 'fringe-background vtab--saved-settings)))))
 
 ;;;; Minor Mode
 
